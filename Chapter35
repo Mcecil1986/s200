@@ -1,0 +1,92 @@
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnectionPane extends BorderPane {
+
+    private final ComboBox<String> driverCombo;
+    private final TextField urlField;
+    private final TextField userField;
+    private final PasswordField passwordField;
+    private Connection connection;
+
+    public DBConnectionPane() {
+        // create the UI controls
+        Label driverLabel = new Label("JDBC Driver:");
+        Label urlLabel = new Label("Database URL:");
+        Label userLabel = new Label("Username:");
+        Label passwordLabel = new Label("Password:");
+        driverCombo = new ComboBox<>();
+        urlField = new TextField();
+        userField = new TextField();
+        passwordField = new PasswordField();
+        Button connectButton = new Button("Connect to DB");
+
+        // set up the driver combo box
+        driverCombo.getItems().addAll(
+                "com.mysql.cj.jdbc.Driver",
+                "oracle.jdbc.driver.OracleDriver",
+                "org.postgresql.Driver",
+                "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+        );
+        driverCombo.getSelectionModel().selectFirst();
+
+        // create the grid pane and add the UI controls to it
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(10));
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
+        gridPane.add(driverLabel, 0, 0);
+        gridPane.add(driverCombo, 1, 0);
+        gridPane.add(urlLabel, 0, 1);
+        gridPane.add(urlField, 1, 1);
+        gridPane.add(userLabel, 0, 2);
+        gridPane.add(userField, 1, 2);
+        gridPane.add(passwordLabel, 0, 3);
+        gridPane.add(passwordField, 1, 3);
+        gridPane.add(connectButton, 1, 4);
+        GridPane.setHalignment(connectButton, HPos.RIGHT);
+
+        // set up the border pane
+        setCenter(gridPane);
+        setAlignment(gridPane, Pos.CENTER);
+        setPadding(new Insets(10));
+
+        // set up the event handler for the connect button
+        connectButton.setOnAction(event -> connectToDB());
+    }
+
+    private void connectToDB() {
+        try {
+            // load the driver
+            Class.forName(driverCombo.getValue());
+
+            // get the connection
+            connection = DriverManager.getConnection(
+                    urlField.getText(),
+                    userField.getText(),
+                    passwordField.getText()
+            );
+
+            System.out.println("Connected to database.");
+        } catch (ClassNotFoundException e) {
+            System.err.println("Error loading JDBC driver: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("Error connecting to database: " + e.getMessage());
+        }
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
+}
